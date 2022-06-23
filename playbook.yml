@@ -1,0 +1,43 @@
+---
+- name: Demostrar los modulos k8s
+  hosts: localhost
+  gather_facts: no
+  connection: local
+  vars:
+    namespace: guillebecker15-dev
+  module_defaults:
+    group/k8s:
+      namespace: "{{ namespace }}"
+      api_key: "sha256~y3wmVG_uhmewotDzIgvMdBUVfU7iQ4gXIe-q_VD_0Yw"
+      host: https://api.sandbox.x8i5.p1.openshiftapps.com:6443
+  tasks: 
+    - name: Crear objetos desde el manifesto
+      k8s:
+        state: present
+        src: "{{ paybook_dir + '/hello.yml' }}"
+        
+    - name Cambiar servicio
+      k8s_service:
+        state: present
+        name: nodejs-ex
+        type: NodePort
+        ports:
+          - port: 8000
+            protocol: TCP
+            
+    - name: Obtener informacion
+      k8s_info:
+        kind: prod
+        label_selector:
+          - app = modejs-ex
+          
+    - name: Expongo el servicio con https
+      k8s_service:
+        state: present
+        name: nodejs-ex
+        ports:
+          - port: 443
+            protocol: TCP
+        selectors:
+          app: nodejs-ex
+    
